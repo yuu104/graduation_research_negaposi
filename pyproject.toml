@@ -7,6 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9.5"
+mecab-python3 = "^1.0.6"
+cabocha-python = "^0.69.3"
+pandas = "^2.0.3"
 
 
 [build-system]
