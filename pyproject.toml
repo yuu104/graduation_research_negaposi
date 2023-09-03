@@ -10,6 +10,9 @@ python = "^3.9.5"
 mecab-python3 = "^1.0.6"
 cabocha-python = "^0.69.3"
 pandas = "^2.0.3"
+asari = "^0.2.0"
+oseti = "^0.4.2"
+pymlask = "^0.3.2"
 
 
 [build-system]

@@ -1,36 +1,40 @@
-import pandas as pd
 import os
+from utils.folder_file import get_all_folder_names
+from pprint import pprint
+from typing import List, TypedDict
+import pandas as pd
+
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 
+
+class ReviewData(TypedDict):
+    useful_count: int
+    content: str
+
+
 def main():
-    # 元のCSVファイルのパスを指定
-    input_file_path = f"{current_path}/csv/choco/01H7Z9XPBDRDH84FYK68J08QM9/01H7Z9XPBDRDH84FYK68J08QM9_review.csv"
-    # CSVファイルからデータを読み込む
-    data = pd.read_csv(input_file_path)
+    category_name = "chocolate"
 
-    # content列の文節に分けた結果を格納する空のリストを作成
-    wakati_contents = []
+    # 商品のフォルダ名をすべて取得
+    item_folder_names = get_all_folder_names(
+        f"{current_path}/csv/{category_name}/items"
+    )
 
-    # content列を文節に分けてリストに格納
-    for content in data['content']:
-        wakati_content = ' '.join(content.split())  # 空白で分割して文節にし、空白で結合して元に戻す
-        wakati_contents.append(wakati_content)
-
+    # for文で商品を一つずつ走査
+    review_data_list: List[ReviewData] = []
+    for item_folder_name in item_folder_names:
+        # `_review.csv`からデータフレームを作成
+        review_df = pd.read_csv(
+            f"{current_path}/csv/{category_name}/items/{item_folder_name}/{item_folder_name}_review.csv"
+        )
+        for i in range(len(review_df)):
+            useful_count = int(review_df.loc[i, "useful_count"])
+            content = review_df.loc[i, "content"]
+            review_data_list.append({"useful_count": useful_count, "content": content})
     # 新しいデータフレームを作成
-    new_data = pd.DataFrame({
-        'useful_count': data['useful_count'],
-        'wakati_content': wakati_contents
-    })
+    new_review_df = pd.DataFrame(review_data_list)
 
-    # 保存先のCSVファイルが存在する場合は追加で保存する
-    try:
-        existing_data = pd.read_csv('all_review.csv')  # 既存のファイル名を指定
-        combined_data = pd.concat([existing_data, new_data])
-        combined_data.to_csv('all_review.csv', index=False)
-    except FileNotFoundError:
-        # 保存先のCSVファイルが存在しない場合は新しく保存する
-        new_data.to_csv('all_review.csv', index=False)
 
 if __name__ == "__main__":
     main()
