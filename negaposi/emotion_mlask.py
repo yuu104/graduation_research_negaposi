@@ -25,16 +25,34 @@ class EmotionResult(TypedDict):
 
 
 class EmotionCount(TypedDict):
-    iya: int
-    yorokobi: int
-    kowa: int
-    yasu: int
-    suki: int
-    aware: int
-    ikari: int
-    odoroki: int
-    takaburi: int
-    haji: int
+    iya: Optional[int]
+    yorokobi: Optional[int]
+    kowa: Optional[int]
+    yasu: Optional[int]
+    suki: Optional[int]
+    aware: Optional[int]
+    ikari: Optional[int]
+    odoroki: Optional[int]
+    takaburi: Optional[int]
+    haji: Optional[int]
+
+
+# class UsefulCountEmotions(TypedDict):
+#     "0人": List[EmotionCount]
+#     "1~2人": List[EmotionCount]
+#     "3~4人": List[EmotionCount]
+#     "5~6人": List[EmotionCount]
+#     "7~9人": List[EmotionCount]
+#     "10人": List[EmotionCount]
+
+
+# class UsefulEmotionCount(TypedDict):
+#     "0人": int
+#     "1~2人": int
+#     "3~4人": int
+#     "5~6人": int
+#     "7~9人": int
+#     "10人": int
 
 
 class MlaskResult(TypedDict):
@@ -65,6 +83,17 @@ def analyze_emotion(sentence: str) -> Union[EmotionResult, None]:
     result = MlaskResult(emotion_analyzer.analyze(sentence))
     result_emotion = result["emotion"]
     return result_emotion
+
+
+def calc_emotion_rate(useful_count_emotions, emotion: str):
+    total_counts = {}
+    for key, value in useful_count_emotions.items():
+        emotion_count = 0
+        for item in value:
+            emotion_count += item.get(emotion, 0)
+        total_counts[key] = emotion_count / len(value)
+
+    return total_counts
 
 
 def main():
@@ -105,28 +134,41 @@ def main():
     result_df = (
         pd.DataFrame(data=result).sort_values("useful_count").reset_index(drop=True)
     )
-    emotion_result_list = (
-        result_df[result_df["useful_count"] == 0].loc[:, "emotion_result"].values
-    )
 
-    emotion_count = {
-        "iya": 0,
-        "aware": 0,
-        "haji": 0,
-        "ikari": 0,
-        "kowa": 0,
-        "odoroki": 0,
-        "suki": 0,
-        "takaburi": 0,
-        "yasu": 0,
-        "yorokobi": 0,
+    useful_count_emotions = {
+        "0人": result_df[result_df["useful_count"] == 0]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
+        "1~2人": result_df[
+            (result_df["useful_count"] >= 1) & (result_df["useful_count"] <= 2)
+        ]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
+        "3~4人": result_df[
+            (result_df["useful_count"] >= 3) & (result_df["useful_count"] <= 4)
+        ]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
+        "5~6人": result_df[
+            (result_df["useful_count"] >= 5) & (result_df["useful_count"] <= 6)
+        ]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
+        "7~9人": result_df[
+            (result_df["useful_count"] >= 7) & (result_df["useful_count"] <= 8)
+        ]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
+        "10人~": result_df[result_df["useful_count"] >= 10]
+        .loc[:, "emotion_result"]
+        .values.tolist(),
     }
 
-    for item in emotion_result_list:
-        for key, value in item.items():
-            emotion_count[key] += value
-
-    pprint(emotion_count)
+    useful_emotion_count = calc_emotion_rate(
+        useful_count_emotions=useful_count_emotions, emotion="aware"
+    )
+    useful_emotion_count_df = pd.DataFrame([useful_emotion_count])
+    pprint(useful_emotion_count_df)
 
 
 if __name__ == "__main__":
