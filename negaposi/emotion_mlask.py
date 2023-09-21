@@ -91,7 +91,7 @@ def calc_emotion_rate(useful_count_emotions, emotion: str):
         emotion_count = 0
         for item in value:
             emotion_count += item.get(emotion, 0)
-        total_counts[key] = emotion_count / len(value)
+        total_counts[key] = round(emotion_count / len(value), 2)
 
     return total_counts
 
